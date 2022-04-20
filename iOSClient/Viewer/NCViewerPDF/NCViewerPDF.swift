@@ -34,7 +34,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate, UIGestureRecogni
     private var thumbnailViewHeight: CGFloat = 70
     private var thumbnailViewWidth: CGFloat = 80
     private var thumbnailPadding: CGFloat = 2
-    private let pdfViewLeadingTrailingAnchorConstant: CGFloat = 5
+    private let pdfViewPaddingConstraint: CGFloat = 5
     private var pdfThumbnailScrollView = UIScrollView()
     private var pdfThumbnailView = PDFThumbnailView()
     private var pdfDocument: PDFDocument?
@@ -68,14 +68,14 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate, UIGestureRecogni
         view.addSubview(pdfView)
 
         NSLayoutConstraint.activate([
-            pdfView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            pdfView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -pdfViewLeadingTrailingAnchorConstant),
-            pdfView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            pdfView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: pdfViewPaddingConstraint),
+            pdfView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -pdfViewPaddingConstraint),
+            pdfView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: pdfViewPaddingConstraint)
         ])
         if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape {
             pdfViewleadingAnchor = pdfView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: thumbnailViewWidth)
         } else {
-            pdfViewleadingAnchor = pdfView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: pdfViewLeadingTrailingAnchorConstant)
+            pdfViewleadingAnchor = pdfView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: pdfViewPaddingConstraint)
         }
         pdfViewleadingAnchor?.isActive = true
 
@@ -190,18 +190,15 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate, UIGestureRecogni
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
 
-        pdfThumbnailScrollView.isHidden = false
-
-        UIView.animate(withDuration: 0.5, animations: {
-            if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape {
-                self.pdfThumbnailScrollViewleadingAnchor?.constant = 0
-                self.pdfViewleadingAnchor?.constant = self.thumbnailViewWidth
-            } else {
-                self.pdfThumbnailScrollViewleadingAnchor?.constant = -self.thumbnailViewWidth
-                self.pdfViewleadingAnchor?.constant = self.pdfViewLeadingTrailingAnchorConstant
-                self.pdfThumbnailScrollView.isHidden = true
-            }
-        })
+        if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape {
+            self.pdfThumbnailScrollView.isHidden = false
+            self.pdfThumbnailScrollViewleadingAnchor?.constant = 0
+            self.pdfViewleadingAnchor?.constant = self.thumbnailViewWidth
+        } else {
+            self.pdfThumbnailScrollView.isHidden = true
+            self.pdfThumbnailScrollViewleadingAnchor?.constant = -self.thumbnailViewWidth
+            self.pdfViewleadingAnchor?.constant = self.pdfViewPaddingConstraint
+        }
     }
 
     deinit {
@@ -365,7 +362,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate, UIGestureRecogni
         if recognizer.state == .recognized {
             if UIDevice.current.userInterfaceIdiom == .phone && UIDevice.current.orientation.isPortrait && self.pdfThumbnailScrollView.isHidden {
                 pdfThumbnailScrollView.isHidden = false
-                UIView.animate(withDuration: 0.5, animations: {
+                UIView.animate(withDuration: 0.3, animations: {
                     self.pdfThumbnailScrollViewleadingAnchor?.constant = 0
                     self.pdfViewleadingAnchor?.constant = self.thumbnailViewWidth
                     self.view.layoutIfNeeded()
