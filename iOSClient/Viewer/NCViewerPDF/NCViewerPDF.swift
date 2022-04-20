@@ -149,9 +149,9 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         tapGesture.numberOfTapsRequired = 1
         pdfView.addGestureRecognizer(tapGesture)
 
-        let edgePan = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(screenEdgeSwiped))
-        edgePan.edges = .left
-        pdfView.addGestureRecognizer(edgePan)
+//        let edgePan = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(screenEdgeSwiped))
+//        edgePan.edges = .left
+//        pdfView.addGestureRecognizer(edgePan)
 
         // recognize single / double tap
         for gesture in pdfView.gestureRecognizers! {
@@ -330,6 +330,8 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
 
     @objc func didTap(_ recognizer: UITapGestureRecognizer) {
 
+        return
+        
         if navigationController?.isNavigationBarHidden ?? false {
 
             navigationController?.setNavigationBarHidden(false, animated: false)
