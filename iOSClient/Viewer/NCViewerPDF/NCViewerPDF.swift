@@ -64,7 +64,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         pdfView.displayMode = .singlePageContinuous
         pdfView.autoScales = true
         pdfView.displayDirection = CCUtility.getPDFDisplayDirection()
-        pdfView.usePageViewController(false, withViewOptions: nil)
         pdfView.backgroundColor = NCBrandColor.shared.systemBackground
         view.addSubview(pdfView)
 
@@ -160,8 +159,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
             tapGesture.require(toFail: gesture)
         }
 
-//        navigationController?.interactivePopGestureRecognizer?.isEnabled = false
-
         handlePageChange()
     }
 
@@ -190,8 +187,17 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         navigationItem.title = metadata.fileNameView
     }
 
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
+    @objc func viewUnload() {
+
+        navigationController?.popViewController(animated: true)
+    }
+
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        ShowHideThumbnail()
+    }
+
+    deinit {
+        print("deinit NCViewerPDF")
 
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterFavoriteFile), object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterDeleteFile), object: nil)
@@ -205,19 +211,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterMenuGotToPageInPDF), object: nil)
 
         NotificationCenter.default.removeObserver(self, name: Notification.Name.PDFViewPageChanged, object: nil)
-    }
-
-    @objc func viewUnload() {
-
-        navigationController?.popViewController(animated: true)
-    }
-
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        ShowHideThumbnail()
-    }
-
-    deinit {
-        print("deinit NCViewerPDF")
     }
 
     // MARK: - NotificationCenter
@@ -374,8 +367,10 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         UIView.animate(withDuration: 0.5, animations: {
             if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape || open {
                 self.pdfThumbnailScrollViewleadingAnchor?.constant = 0
+                self.pdfViewleadingAnchor?.constant = self.thumbnailViewWidth
             } else {
                 self.pdfThumbnailScrollViewleadingAnchor?.constant = -self.thumbnailViewWidth
+                self.pdfViewleadingAnchor?.constant = 0
                 self.pdfThumbnailScrollView.isHidden = true
             }
             self.view.layoutIfNeeded()
