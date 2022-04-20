@@ -40,6 +40,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
     private let pageView = UIView()
     private let pageViewLabel = UILabel()
     private var filePath = ""
+    private var defaultBackgroundColor: UIColor = .clear
 
     private var pageViewWidthAnchor: NSLayoutConstraint?
     private var pdfThumbnailScrollViewleadingAnchor: NSLayoutConstraint?
@@ -56,13 +57,13 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         filePath = CCUtility.getDirectoryProviderStorageOcId(metadata.ocId, fileNameView: metadata.fileNameView)!
         pdfDocument = PDFDocument(url: URL(fileURLWithPath: filePath))
         let pageCount = CGFloat(pdfDocument?.pageCount ?? 0)
+        defaultBackgroundColor = pdfView.backgroundColor
+        view.backgroundColor = defaultBackgroundColor
 
         pdfView.translatesAutoresizingMaskIntoConstraints = false
         pdfView.document = pdfDocument
-        pdfView.backgroundColor = NCBrandColor.shared.systemBackground
         pdfView.displayMode = .singlePageContinuous
         pdfView.displayDirection = CCUtility.getPDFDisplayDirection()
-        pdfView.backgroundColor = NCBrandColor.shared.systemBackground
         // BUGFIX
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             self?.pdfView.autoScales = true
@@ -82,7 +83,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         pdfViewleadingAnchor?.isActive = true
 
         pdfThumbnailScrollView.translatesAutoresizingMaskIntoConstraints = false
-        pdfThumbnailScrollView.backgroundColor = .clear
+        pdfThumbnailScrollView.backgroundColor = defaultBackgroundColor
         pdfThumbnailScrollView.showsVerticalScrollIndicator = false
         pdfThumbnailScrollView.isHidden = true
         view.addSubview(pdfThumbnailScrollView)
@@ -129,8 +130,8 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         view.addSubview(pageView)
 
         NSLayoutConstraint.activate([
-            pageView.topAnchor.constraint(equalTo: pdfView.topAnchor, constant: 5),
-            pageView.leftAnchor.constraint(equalTo: pdfView.leftAnchor, constant: 5),
+            pageView.topAnchor.constraint(equalTo: pdfView.topAnchor, constant: 10),
+            pageView.leftAnchor.constraint(equalTo: pdfView.leftAnchor, constant: 10),
             pageView.heightAnchor.constraint(equalToConstant: 30)
         ])
         pageViewWidthAnchor = pageView.widthAnchor.constraint(equalToConstant: 10)
@@ -344,24 +345,12 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
     @objc func tapPdfView(_ recognizer: UITapGestureRecognizer) {
 
         if navigationController?.isNavigationBarHidden ?? false {
-
             navigationController?.setNavigationBarHidden(false, animated: false)
-            pdfThumbnailView.isHidden = false
-            pdfView.backgroundColor = NCBrandColor.shared.systemBackground
-            view.backgroundColor = NCBrandColor.shared.systemBackground
-
         } else {
-
-            let point = recognizer.location(in: pdfView)
-            if point.y > pdfView.frame.height - thumbnailViewHeight { return }
-
             navigationController?.setNavigationBarHidden(true, animated: false)
-            pdfThumbnailView.isHidden = true
-            pdfView.backgroundColor = .black
-            view.backgroundColor = .black
         }
 
-        handlePageChange()
+//        handlePageChange()
     }
 
     @objc func swipeRightPdfView(_ recognizer: UIScreenEdgePanGestureRecognizer) {
