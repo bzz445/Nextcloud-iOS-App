@@ -71,9 +71,9 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         view.addSubview(pdfView)
 
         NSLayoutConstraint.activate([
-            pdfView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            pdfView.topAnchor.constraint(equalTo: view.topAnchor),
             pdfView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            pdfView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            pdfView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape {
             pdfViewleadingAnchor = pdfView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: thumbnailViewWidth)
@@ -89,8 +89,8 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         view.addSubview(pdfThumbnailScrollView)
 
         NSLayoutConstraint.activate([
-            pdfThumbnailScrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            pdfThumbnailScrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            pdfThumbnailScrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            pdfThumbnailScrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             pdfThumbnailScrollView.widthAnchor.constraint(equalToConstant: thumbnailViewWidth)
         ])
         if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape {
@@ -109,14 +109,14 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         pdfThumbnailScrollView.addSubview(pdfThumbnailView)
 
         NSLayoutConstraint.activate([
-            pdfThumbnailView.topAnchor.constraint(equalTo: pdfThumbnailScrollView.contentLayoutGuide.topAnchor),
-            pdfThumbnailView.bottomAnchor.constraint(equalTo: pdfThumbnailScrollView.contentLayoutGuide.bottomAnchor),
-            pdfThumbnailView.leadingAnchor.constraint(equalTo: pdfThumbnailScrollView.contentLayoutGuide.leadingAnchor),
-            pdfThumbnailView.trailingAnchor.constraint(equalTo: pdfThumbnailScrollView.contentLayoutGuide.trailingAnchor)
+            pdfThumbnailView.topAnchor.constraint(equalTo: pdfThumbnailScrollView.topAnchor),
+            pdfThumbnailView.bottomAnchor.constraint(equalTo: pdfThumbnailScrollView.bottomAnchor),
+            pdfThumbnailView.leadingAnchor.constraint(equalTo: pdfThumbnailScrollView.leadingAnchor),
+            pdfThumbnailView.trailingAnchor.constraint(equalTo: pdfThumbnailScrollView.trailingAnchor)
         ])
         let contentViewCenterY = pdfThumbnailView.centerYAnchor.constraint(equalTo: pdfThumbnailScrollView.centerYAnchor)
         contentViewCenterY.priority = .defaultLow
-        let contentViewHeight = pdfThumbnailView.heightAnchor.constraint(equalToConstant: CGFloat(pageCount * thumbnailViewHeight) + CGFloat(pageCount * thumbnailPadding) + CGFloat(thumbnailViewHeight / 2))
+        let contentViewHeight = pdfThumbnailView.heightAnchor.constraint(equalToConstant: CGFloat(pageCount * thumbnailViewHeight) + CGFloat(pageCount * thumbnailPadding))
         contentViewHeight.priority = .defaultLow
         NSLayoutConstraint.activate([
             pdfThumbnailView.centerXAnchor.constraint(equalTo: pdfThumbnailScrollView.centerXAnchor),
