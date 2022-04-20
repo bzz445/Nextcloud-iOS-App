@@ -80,6 +80,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         pdfThumbnailScrollView.translatesAutoresizingMaskIntoConstraints = false
         pdfThumbnailScrollView.backgroundColor = .clear
         pdfThumbnailScrollView.showsVerticalScrollIndicator = false
+        pdfThumbnailScrollView.isHidden = true
         view.addSubview(pdfThumbnailScrollView)
 
         NSLayoutConstraint.activate([
@@ -89,6 +90,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         ])
         if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape {
             pdfThumbnailScrollViewleadingAnchor = pdfThumbnailScrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 0)
+            pdfThumbnailScrollView.isHidden = false
         } else {
             pdfThumbnailScrollViewleadingAnchor = pdfThumbnailScrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: -self.thumbnailViewWidth)
         }
@@ -357,7 +359,9 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
 
     func ShowHideThumbnail(constant: CGFloat? = 0) {
 
+        pdfThumbnailScrollView.isHidden = false
         self.view.layoutIfNeeded()
+
         UIView.animate(withDuration: 0.5, animations: {
             if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape {
                 self.pdfThumbnailScrollViewleadingAnchor?.constant = 0
