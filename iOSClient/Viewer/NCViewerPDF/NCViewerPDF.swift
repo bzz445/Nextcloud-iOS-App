@@ -164,7 +164,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         appDelegate.activeViewController = self
         navigationController?.navigationBar.prefersLargeTitles = false
 
-        //
         NotificationCenter.default.addObserver(self, selector: #selector(favoriteFile(_:)), name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterFavoriteFile), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(deleteFile(_:)), name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterDeleteFile), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(renameFile(_:)), name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterRenameFile), object: nil)
@@ -177,9 +176,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(goToPage), name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterMenuGotToPageInPDF), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(handlePageChange), name: Notification.Name.PDFViewPageChanged, object: nil)
 
-        //
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "more")!.image(color: NCBrandColor.shared.label, size: 25), style: .plain, target: self, action: #selector(self.openMenuMore))
-
         navigationItem.title = metadata.fileNameView
     }
 
@@ -189,6 +186,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        
         ShowHideThumbnail()
     }
 
