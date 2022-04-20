@@ -63,10 +63,13 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         pdfView.translatesAutoresizingMaskIntoConstraints = false
         pdfView.document = pdfDocument
         pdfView.displayMode = .singlePageContinuous
+        pdfView.autoScales = true
         pdfView.displayDirection = CCUtility.getPDFDisplayDirection()
         // BUGFIX
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            self?.pdfView.autoScales = true
+            if let scrollView = self?.pdfView.subviews.first as? UIScrollView, let view = self?.view {
+                scrollView.contentOffset.y = -view.safeAreaInsets.top
+            }
         }
         view.addSubview(pdfView)
 
