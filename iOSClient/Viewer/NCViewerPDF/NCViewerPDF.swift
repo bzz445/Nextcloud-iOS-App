@@ -158,6 +158,8 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
             tapGesture.require(toFail: gesture)
         }
 
+        navigationController?.navigationBar.prefersLargeTitles = false
+
         handlePageChange()
     }
 
@@ -182,7 +184,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         //
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "more")!.image(color: NCBrandColor.shared.label, size: 25), style: .plain, target: self, action: #selector(self.openMenuMore))
 
-        navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.title = metadata.fileNameView
     }
 
