@@ -57,7 +57,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         pdfDocument = PDFDocument(url: URL(fileURLWithPath: filePath))
         let pageCount = CGFloat(pdfDocument?.pageCount ?? 0)
 
-        pdfView = PDFView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height))
         pdfView.translatesAutoresizingMaskIntoConstraints = false
         pdfView.document = pdfDocument
         pdfView.backgroundColor = NCBrandColor.shared.systemBackground
