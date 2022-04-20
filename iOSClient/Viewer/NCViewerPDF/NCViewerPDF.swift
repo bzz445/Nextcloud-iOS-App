@@ -130,7 +130,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         view.addSubview(pageView)
 
         NSLayoutConstraint.activate([
-            pageView.topAnchor.constraint(equalTo: pdfView.topAnchor, constant: 10),
+            pageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             pageView.leftAnchor.constraint(equalTo: pdfView.leftAnchor, constant: 10),
             pageView.heightAnchor.constraint(equalToConstant: 30)
         ])
