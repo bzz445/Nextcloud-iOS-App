@@ -39,9 +39,10 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
     private var pdfDocument: PDFDocument?
     private let pageView = UIView()
     private let pageViewLabel = UILabel()
-    private var pageViewWidthAnchor: NSLayoutConstraint?
-    private var pdfThumbnailScrollViewWidthAnchor: NSLayoutConstraint?
     private var filePath = ""
+
+    private var pageViewWidthAnchor: NSLayoutConstraint?
+    private var pdfThumbnailScrollViewleadingAnchor: NSLayoutConstraint?
 
     // MARK: - View Life Cycle
 
@@ -69,10 +70,29 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         pdfView.backgroundColor = NCBrandColor.shared.systemBackground
         view.addSubview(pdfView)
 
+        NSLayoutConstraint.activate([
+            pdfView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            pdfView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            pdfView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            pdfView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+
         pdfThumbnailScrollView.translatesAutoresizingMaskIntoConstraints = false
         pdfThumbnailScrollView.backgroundColor = .clear
         pdfThumbnailScrollView.showsVerticalScrollIndicator = false
         view.addSubview(pdfThumbnailScrollView)
+
+        NSLayoutConstraint.activate([
+            pdfThumbnailScrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            pdfThumbnailScrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            pdfThumbnailScrollView.widthAnchor.constraint(equalToConstant: thumbnailViewWidth)
+        ])
+        if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape {
+            pdfThumbnailScrollViewleadingAnchor = pdfThumbnailScrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 0)
+        } else {
+            pdfThumbnailScrollViewleadingAnchor = pdfThumbnailScrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: -self.thumbnailViewWidth)
+        }
+        pdfThumbnailScrollViewleadingAnchor?.isActive = true
 
         pdfThumbnailView.translatesAutoresizingMaskIntoConstraints = false
         pdfThumbnailView.pdfView = pdfView
@@ -80,33 +100,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         pdfThumbnailView.thumbnailSize = CGSize(width: thumbnailViewHeight, height: thumbnailViewHeight)
         pdfThumbnailView.backgroundColor = .clear
         pdfThumbnailScrollView.addSubview(pdfThumbnailView)
-
-        pageView.translatesAutoresizingMaskIntoConstraints = false
-        pageView.layer.cornerRadius = 10
-        pageView.backgroundColor = UIColor.gray.withAlphaComponent(0.3)
-        view.addSubview(pageView)
-
-        pageViewLabel.translatesAutoresizingMaskIntoConstraints = false
-        pageViewLabel.textAlignment = .center
-        pageViewLabel.textColor = .gray
-        pageView.addSubview(pageViewLabel)
-
-        // CONSTRAINT
-
-        NSLayoutConstraint.activate([
-            pdfView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            pdfView.leadingAnchor.constraint(equalTo: pdfThumbnailScrollView.trailingAnchor),
-            pdfView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            pdfView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
-        ])
-
-        NSLayoutConstraint.activate([
-            pdfThumbnailScrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            pdfThumbnailScrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            pdfThumbnailScrollView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor)
-        ])
-        pdfThumbnailScrollViewWidthAnchor = pdfThumbnailScrollView.widthAnchor.constraint(equalToConstant: thumbnailViewWidth)
-        pdfThumbnailScrollViewWidthAnchor?.isActive = true
 
         NSLayoutConstraint.activate([
             pdfThumbnailView.topAnchor.constraint(equalTo: pdfThumbnailScrollView.contentLayoutGuide.topAnchor),
@@ -124,6 +117,11 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
             contentViewHeight
         ])
 
+        pageView.translatesAutoresizingMaskIntoConstraints = false
+        pageView.layer.cornerRadius = 10
+        pageView.backgroundColor = UIColor.gray.withAlphaComponent(0.3)
+        view.addSubview(pageView)
+
         NSLayoutConstraint.activate([
             pageView.topAnchor.constraint(equalTo: pdfView.topAnchor, constant: 5),
             pageView.leftAnchor.constraint(equalTo: pdfView.leftAnchor, constant: 5),
@@ -132,6 +130,11 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         pageViewWidthAnchor = pageView.widthAnchor.constraint(equalToConstant: 10)
         pageViewWidthAnchor?.isActive = true
 
+        pageViewLabel.translatesAutoresizingMaskIntoConstraints = false
+        pageViewLabel.textAlignment = .center
+        pageViewLabel.textColor = .gray
+        pageView.addSubview(pageViewLabel)
+
         NSLayoutConstraint.activate([
             pageViewLabel.topAnchor.constraint(equalTo: pageView.topAnchor),
             pageViewLabel.leftAnchor.constraint(equalTo: pageView.leftAnchor),
@@ -139,17 +142,20 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
             pageViewLabel.bottomAnchor.constraint(equalTo: pageView.bottomAnchor)
         ])
 
-        handlePageChange()
-        ShowHideThumbnail()
-
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTap(_:)))
         tapGesture.numberOfTapsRequired = 1
         pdfView.addGestureRecognizer(tapGesture)
+
+        let edgePan = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(screenEdgeSwiped))
+        edgePan.edges = .left
+        view.addGestureRecognizer(edgePan)
 
         // recognize single / double tap
         for gesture in pdfView.gestureRecognizers! {
             tapGesture.require(toFail: gesture)
         }
+
+        handlePageChange()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -341,16 +347,22 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         handlePageChange()
     }
 
+    @objc func screenEdgeSwiped(_ recognizer: UIScreenEdgePanGestureRecognizer) {
+        if recognizer.state == .recognized {
+            print("Screen edge swiped!")
+        }
+    }
+
     // MARK: -
 
-    func ShowHideThumbnail() {
+    func ShowHideThumbnail(constant: CGFloat? = 0) {
 
         self.view.layoutIfNeeded()
-        UIView.animate(withDuration: 3.0, animations: {
-            if UIDevice.current.orientation.isLandscape {
-                self.pdfThumbnailScrollViewWidthAnchor?.constant = self.thumbnailViewWidth
+        UIView.animate(withDuration: 0.5, animations: {
+            if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape {
+                self.pdfThumbnailScrollViewleadingAnchor?.constant = 0
             } else {
-                self.pdfThumbnailScrollViewWidthAnchor?.constant = 0
+                self.pdfThumbnailScrollViewleadingAnchor?.constant = -self.thumbnailViewWidth
             }
             self.view.layoutIfNeeded()
         })
