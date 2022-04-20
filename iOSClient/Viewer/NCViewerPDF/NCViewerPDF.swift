@@ -24,7 +24,7 @@
 import UIKit
 import PDFKit
 
-class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate, UIGestureRecognizerDelegate {
+class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
 
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     var metadata = tableMetadata()
@@ -34,7 +34,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate, UIGestureRecogni
     private var thumbnailViewHeight: CGFloat = 70
     private var thumbnailViewWidth: CGFloat = 80
     private var thumbnailPadding: CGFloat = 2
-    private let pdfViewPaddingConstraint: CGFloat = 5
     private var pdfThumbnailScrollView = UIScrollView()
     private var pdfThumbnailView = PDFThumbnailView()
     private var pdfDocument: PDFDocument?
@@ -68,14 +67,14 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate, UIGestureRecogni
         view.addSubview(pdfView)
 
         NSLayoutConstraint.activate([
-            pdfView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: pdfViewPaddingConstraint),
-            pdfView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -pdfViewPaddingConstraint),
-            pdfView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: pdfViewPaddingConstraint)
+            pdfView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            pdfView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            pdfView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
         if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape {
             pdfViewleadingAnchor = pdfView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: thumbnailViewWidth)
         } else {
-            pdfViewleadingAnchor = pdfView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: pdfViewPaddingConstraint)
+            pdfViewleadingAnchor = pdfView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 0)
         }
         pdfViewleadingAnchor?.isActive = true
 
@@ -146,14 +145,20 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate, UIGestureRecogni
             pageViewLabel.bottomAnchor.constraint(equalTo: pageView.bottomAnchor)
         ])
 
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTap(_:)))
-        tapGesture.numberOfTapsRequired = 1
-        pdfView.addGestureRecognizer(tapGesture)
+        let tapPdfView = UITapGestureRecognizer(target: self, action: #selector(tapPdfView))
+        tapPdfView.numberOfTapsRequired = 1
+        pdfView.addGestureRecognizer(tapPdfView)
 
-        let edgePan = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(screenEdgeSwiped))
-        edgePan.edges = .left
-        edgePan.delegate = self
-        view.addGestureRecognizer(edgePan)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+
+            let swipeRightPdfView = UISwipeGestureRecognizer(target: self, action: #selector(swipeRightPdfView))
+            swipeRightPdfView.direction = .right
+            pdfView.addGestureRecognizer(swipeRightPdfView)
+
+            let swipeLeftPdfView = UISwipeGestureRecognizer(target: self, action: #selector(swipeLeftPdfView))
+            swipeLeftPdfView.direction = .left
+            pdfView.addGestureRecognizer(swipeLeftPdfView)
+        }
 
         navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.interactivePopGestureRecognizer?.isEnabled = false
@@ -197,7 +202,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate, UIGestureRecogni
         } else {
             self.pdfThumbnailScrollView.isHidden = true
             self.pdfThumbnailScrollViewleadingAnchor?.constant = -self.thumbnailViewWidth
-            self.pdfViewleadingAnchor?.constant = self.pdfViewPaddingConstraint
+            self.pdfViewleadingAnchor?.constant = 0
         }
     }
 
@@ -333,7 +338,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate, UIGestureRecogni
 
     // MARK: - Gesture Recognizer
 
-    @objc func didTap(_ recognizer: UITapGestureRecognizer) {
+    @objc func tapPdfView(_ recognizer: UITapGestureRecognizer) {
 
         return
 
@@ -358,15 +363,25 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate, UIGestureRecogni
         handlePageChange()
     }
 
-    @objc func screenEdgeSwiped(_ recognizer: UIScreenEdgePanGestureRecognizer) {
-        if recognizer.state == .recognized {
-            if UIDevice.current.userInterfaceIdiom == .phone && UIDevice.current.orientation.isPortrait && self.pdfThumbnailScrollView.isHidden {
-                pdfThumbnailScrollView.isHidden = false
-                UIView.animate(withDuration: 0.3, animations: {
-                    self.pdfThumbnailScrollViewleadingAnchor?.constant = 0
-                    self.pdfViewleadingAnchor?.constant = self.thumbnailViewWidth
-                    self.view.layoutIfNeeded()
-                })
+    @objc func swipeRightPdfView(_ recognizer: UIScreenEdgePanGestureRecognizer) {
+        if recognizer.state == .recognized && UIDevice.current.orientation.isPortrait && self.pdfThumbnailScrollView.isHidden {
+            pdfThumbnailScrollView.isHidden = false
+            UIView.animate(withDuration: 0.3, animations: {
+                self.pdfThumbnailScrollViewleadingAnchor?.constant = 0
+                self.pdfViewleadingAnchor?.constant = self.thumbnailViewWidth
+                self.view.layoutIfNeeded()
+            })
+        }
+    }
+
+    @objc func swipeLeftPdfView(_ recognizer: UIScreenEdgePanGestureRecognizer) {
+        if recognizer.state == .recognized && UIDevice.current.orientation.isPortrait && !self.pdfThumbnailScrollView.isHidden {
+            UIView.animate(withDuration: 0.3) {
+                self.pdfThumbnailScrollViewleadingAnchor?.constant = -self.thumbnailViewWidth
+                self.pdfViewleadingAnchor?.constant = 0
+                self.view.layoutIfNeeded()
+            } completion: { _ in
+                self.pdfThumbnailScrollView.isHidden = true
             }
         }
     }
