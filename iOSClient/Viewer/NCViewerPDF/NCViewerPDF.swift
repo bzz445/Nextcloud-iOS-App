@@ -153,11 +153,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
 //        edgePan.edges = .left
 //        pdfView.addGestureRecognizer(edgePan)
 
-        // recognize single / double tap
-        for gesture in pdfView.gestureRecognizers! {
-            tapGesture.require(toFail: gesture)
-        }
-
         navigationController?.navigationBar.prefersLargeTitles = false
 
         handlePageChange()
@@ -167,6 +162,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         super.viewWillAppear(animated)
 
         appDelegate.activeViewController = self
+        navigationController?.navigationBar.prefersLargeTitles = false
 
         //
         NotificationCenter.default.addObserver(self, selector: #selector(favoriteFile(_:)), name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterFavoriteFile), object: nil)
@@ -331,7 +327,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
     @objc func didTap(_ recognizer: UITapGestureRecognizer) {
 
         return
-        
+
         if navigationController?.isNavigationBarHidden ?? false {
 
             navigationController?.setNavigationBarHidden(false, animated: false)
