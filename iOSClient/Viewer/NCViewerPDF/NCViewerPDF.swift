@@ -152,26 +152,20 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         tapPdfView.numberOfTapsRequired = 1
         pdfView.addGestureRecognizer(tapPdfView)
 
-        if UIDevice.current.userInterfaceIdiom == .phone {
-
-            let swipeRightPdfView = UISwipeGestureRecognizer(target: self, action: #selector(swipeRightPdfView))
-            swipeRightPdfView.direction = .right
-            pdfView.addGestureRecognizer(swipeRightPdfView)
-
-            let swipeLeftPdfView = UISwipeGestureRecognizer(target: self, action: #selector(swipeLeftPdfView))
-            swipeLeftPdfView.direction = .left
-            pdfView.addGestureRecognizer(swipeLeftPdfView)
+        // recognize single / double tap
+        for gesture in pdfView.gestureRecognizers! {
+            tapPdfView.require(toFail: gesture)
         }
 
-        navigationController?.navigationBar.prefersLargeTitles = false
 
-        handlePageChange()
-    }
+        let swipeRightPdfView = UISwipeGestureRecognizer(target: self, action: #selector(swipeRightPdfView))
+        swipeRightPdfView.direction = .right
+        pdfView.addGestureRecognizer(swipeRightPdfView)
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+        let swipeLeftPdfView = UISwipeGestureRecognizer(target: self, action: #selector(swipeLeftPdfView))
+        swipeLeftPdfView.direction = .left
+        pdfView.addGestureRecognizer(swipeLeftPdfView)
 
-        appDelegate.activeViewController = self
         navigationController?.navigationBar.prefersLargeTitles = false
 
         NotificationCenter.default.addObserver(self, selector: #selector(favoriteFile(_:)), name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterFavoriteFile), object: nil)
@@ -184,10 +178,17 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(searchText), name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterMenuSearchTextPDF), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(direction(_:)), name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterMenuPDFDisplayDirection), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(goToPage), name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterMenuGotToPageInPDF), object: nil)
+
         NotificationCenter.default.addObserver(self, selector: #selector(handlePageChange), name: Notification.Name.PDFViewPageChanged, object: nil)
 
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "more")!.image(color: NCBrandColor.shared.label, size: 25), style: .plain, target: self, action: #selector(self.openMenuMore))
         navigationItem.title = metadata.fileNameView
+
+        handlePageChange()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
     }
 
     @objc func viewUnload() {
@@ -209,7 +210,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
     }
 
     deinit {
-        print("deinit NCViewerPDF")
 
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterFavoriteFile), object: nil)
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name(rawValue: NCGlobal.shared.notificationCenterDeleteFile), object: nil)
@@ -304,6 +304,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
             if let direction = userInfo["direction"] as? PDFDisplayDirection {
                 pdfView.displayDirection = direction
                 CCUtility.setPDFDisplayDirection(direction)
+                closePdfThumbnail()
                 handlePageChange()
             }
         }
@@ -364,7 +365,24 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
     }
 
     @objc func swipeRightPdfView(_ recognizer: UIScreenEdgePanGestureRecognizer) {
-        if recognizer.state == .recognized && UIDevice.current.orientation.isPortrait && self.pdfThumbnailScrollView.isHidden {
+
+        if recognizer.state == .recognized {
+            openPdfThumbnail()
+        }
+    }
+
+    @objc func swipeLeftPdfView(_ recognizer: UIScreenEdgePanGestureRecognizer) {
+
+        if recognizer.state == .recognized {
+            closePdfThumbnail()
+        }
+    }
+
+    // MARK: -
+
+    func openPdfThumbnail() {
+
+        if UIDevice.current.userInterfaceIdiom == .phone && UIDevice.current.orientation.isPortrait && self.pdfThumbnailScrollView.isHidden {
             pdfThumbnailScrollView.isHidden = false
             UIView.animate(withDuration: 0.3, animations: {
                 self.pdfThumbnailScrollViewleadingAnchor?.constant = 0
@@ -374,8 +392,9 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         }
     }
 
-    @objc func swipeLeftPdfView(_ recognizer: UIScreenEdgePanGestureRecognizer) {
-        if recognizer.state == .recognized && UIDevice.current.orientation.isPortrait && !self.pdfThumbnailScrollView.isHidden {
+    func closePdfThumbnail() {
+
+        if UIDevice.current.userInterfaceIdiom == .phone && UIDevice.current.orientation.isPortrait && !self.pdfThumbnailScrollView.isHidden {
             UIView.animate(withDuration: 0.3) {
                 self.pdfThumbnailScrollViewleadingAnchor?.constant = -self.thumbnailViewWidth
                 self.pdfViewleadingAnchor?.constant = 0
@@ -385,8 +404,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
             }
         }
     }
-
-    // MARK: -
 
     @objc func handlePageChange() {
 
