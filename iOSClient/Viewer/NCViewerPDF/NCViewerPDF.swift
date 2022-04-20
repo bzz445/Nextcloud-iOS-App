@@ -61,9 +61,12 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         pdfView.document = pdfDocument
         pdfView.backgroundColor = NCBrandColor.shared.systemBackground
         pdfView.displayMode = .singlePageContinuous
-        pdfView.autoScales = true
         pdfView.displayDirection = CCUtility.getPDFDisplayDirection()
         pdfView.backgroundColor = NCBrandColor.shared.systemBackground
+        // BUGFIX
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.pdfView.autoScales = true
+        }
         view.addSubview(pdfView)
 
         NSLayoutConstraint.activate([
@@ -161,7 +164,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         }
 
         navigationController?.navigationBar.prefersLargeTitles = false
-        navigationController?.interactivePopGestureRecognizer?.isEnabled = false
 
         handlePageChange()
     }
@@ -339,8 +341,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
     // MARK: - Gesture Recognizer
 
     @objc func tapPdfView(_ recognizer: UITapGestureRecognizer) {
-
-        return
 
         if navigationController?.isNavigationBarHidden ?? false {
 
