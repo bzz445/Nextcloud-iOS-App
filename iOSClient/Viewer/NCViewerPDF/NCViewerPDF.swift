@@ -149,10 +149,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         tapGesture.numberOfTapsRequired = 1
         pdfView.addGestureRecognizer(tapGesture)
 
-//        let edgePan = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(screenEdgeSwiped))
-//        edgePan.edges = .left
-//        pdfView.addGestureRecognizer(edgePan)
-
         navigationController?.navigationBar.prefersLargeTitles = false
 
         handlePageChange()
@@ -186,7 +182,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        
+
         ShowHideThumbnail()
     }
 
@@ -358,7 +354,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
     func ShowHideThumbnail(open: Bool = false) {
 
         pdfThumbnailScrollView.isHidden = false
-        self.view.layoutIfNeeded()
 
         UIView.animate(withDuration: 0.5, animations: {
             if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape || open {
@@ -369,7 +364,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
                 self.pdfViewleadingAnchor?.constant = 0
                 self.pdfThumbnailScrollView.isHidden = true
             }
-            self.view.layoutIfNeeded()
         })
     }
 
