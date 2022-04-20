@@ -24,7 +24,7 @@
 import UIKit
 import PDFKit
 
-class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
+class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate, UIGestureRecognizerDelegate {
 
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     var metadata = tableMetadata()
@@ -34,6 +34,7 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
     private var thumbnailViewHeight: CGFloat = 70
     private var thumbnailViewWidth: CGFloat = 80
     private var thumbnailPadding: CGFloat = 2
+    private let pdfViewLeadingTrailingAnchorConstant: CGFloat = 5
     private var pdfThumbnailScrollView = UIScrollView()
     private var pdfThumbnailView = PDFThumbnailView()
     private var pdfDocument: PDFDocument?
@@ -68,13 +69,13 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
 
         NSLayoutConstraint.activate([
             pdfView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            pdfView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            pdfView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -pdfViewLeadingTrailingAnchorConstant),
             pdfView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
         if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape {
             pdfViewleadingAnchor = pdfView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: thumbnailViewWidth)
         } else {
-            pdfViewleadingAnchor = pdfView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 0)
+            pdfViewleadingAnchor = pdfView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: pdfViewLeadingTrailingAnchorConstant)
         }
         pdfViewleadingAnchor?.isActive = true
 
@@ -149,7 +150,13 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         tapGesture.numberOfTapsRequired = 1
         pdfView.addGestureRecognizer(tapGesture)
 
+        let edgePan = UIScreenEdgePanGestureRecognizer(target: self, action: #selector(screenEdgeSwiped))
+        edgePan.edges = .left
+        edgePan.delegate = self
+        view.addGestureRecognizer(edgePan)
+
         navigationController?.navigationBar.prefersLargeTitles = false
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = false
 
         handlePageChange()
     }
@@ -183,7 +190,18 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
 
-        ShowHideThumbnail()
+        pdfThumbnailScrollView.isHidden = false
+
+        UIView.animate(withDuration: 0.5, animations: {
+            if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape {
+                self.pdfThumbnailScrollViewleadingAnchor?.constant = 0
+                self.pdfViewleadingAnchor?.constant = self.thumbnailViewWidth
+            } else {
+                self.pdfThumbnailScrollViewleadingAnchor?.constant = -self.thumbnailViewWidth
+                self.pdfViewleadingAnchor?.constant = self.pdfViewLeadingTrailingAnchorConstant
+                self.pdfThumbnailScrollView.isHidden = true
+            }
+        })
     }
 
     deinit {
@@ -345,27 +363,18 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
 
     @objc func screenEdgeSwiped(_ recognizer: UIScreenEdgePanGestureRecognizer) {
         if recognizer.state == .recognized {
-            print("Screen edge swiped!")
+            if UIDevice.current.userInterfaceIdiom == .phone && UIDevice.current.orientation.isPortrait && self.pdfThumbnailScrollView.isHidden {
+                pdfThumbnailScrollView.isHidden = false
+                UIView.animate(withDuration: 0.5, animations: {
+                    self.pdfThumbnailScrollViewleadingAnchor?.constant = 0
+                    self.pdfViewleadingAnchor?.constant = self.thumbnailViewWidth
+                    self.view.layoutIfNeeded()
+                })
+            }
         }
     }
 
     // MARK: -
-
-    func ShowHideThumbnail(open: Bool = false) {
-
-        pdfThumbnailScrollView.isHidden = false
-
-        UIView.animate(withDuration: 0.5, animations: {
-            if UIDevice.current.userInterfaceIdiom == .pad || UIDevice.current.orientation.isLandscape || open {
-                self.pdfThumbnailScrollViewleadingAnchor?.constant = 0
-                self.pdfViewleadingAnchor?.constant = self.thumbnailViewWidth
-            } else {
-                self.pdfThumbnailScrollViewleadingAnchor?.constant = -self.thumbnailViewWidth
-                self.pdfViewleadingAnchor?.constant = 0
-                self.pdfThumbnailScrollView.isHidden = true
-            }
-        })
-    }
 
     @objc func handlePageChange() {
 
