@@ -158,7 +158,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
             tapPdfView.require(toFail: gesture)
         }
 
-
         let swipeRightPdfView = UISwipeGestureRecognizer(target: self, action: #selector(swipeRightPdfView))
         swipeRightPdfView.direction = .right
         pdfView.addGestureRecognizer(swipeRightPdfView)
@@ -349,8 +348,6 @@ class NCViewerPDF: UIViewController, NCViewerPDFSearchDelegate {
         } else {
             navigationController?.setNavigationBarHidden(true, animated: false)
         }
-
-//        handlePageChange()
     }
 
     @objc func swipeRightPdfView(_ recognizer: UIScreenEdgePanGestureRecognizer) {
